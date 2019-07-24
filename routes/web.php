@@ -18,3 +18,7 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
+
+/** create a job */
+Route::get('/jobs/create', 'JobController@form');
+Route::post('/jobs', 'JobController@postJob');
