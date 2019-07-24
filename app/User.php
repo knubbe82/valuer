@@ -2,13 +2,18 @@
 
 namespace App;
 
+use App\Notifications\FirstJobPost;
+use App\Notifications\ModeratorReview;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Facades\Notification;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use Notifiable;
+    use Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -36,4 +41,53 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * @return HasMany
+     */
+    public function jobs() :HasMany
+    {
+        return $this->hasMany(Job::class);
+    }
+
+    /**
+     * Save a job for user
+     * @param $data
+     * @return \Illuminate\Database\Eloquent\Model
+     */
+    public function saveAJob($data)
+    {
+        $input = $data;
+
+        if ($this->checkIsAFirstJob()) {
+            $job = $this->jobs()->create($input);
+            return $this->notifyModeratorAndUser($this, $job);
+        }
+        $input['approved'] = true;
+        return $this->jobs()->create($input);
+    }
+
+    /**
+     * Check if this is a first job by user
+     * @return bool
+     */
+    protected function checkIsAFirstJob()
+    {
+        if ($this->jobs()->count() == 0 || in_array(0, $this->jobs()->pluck('approved')->toArray())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Notify moderator about posting a first job
+     * @param $user
+     * @param $data
+     */
+    protected function notifyModeratorAndUser($user, $data)
+    {
+        Notification::send(User::role('moderator')->get(), new FirstJobPost($user, $data));
+        $this->notify(new ModeratorReview());
+    }
 }

@@ -14,3 +14,15 @@
 Route::get('/', function () {
     return view('welcome');
 });
+
+Auth::routes();
+
+Route::get('/home', 'HomeController@index')->name('home');
+
+/** create a job */
+Route::get('/jobs/create', 'JobController@form');
+Route::post('/jobs', 'JobController@postJob');
+
+/** moderator decision */
+Route::get('/decision/{user}/approve/{data}', 'ModeratorDecision@approve')->name('job.approve');
+Route::get('/decision/{user}/spam/{data}', 'ModeratorDecision@spam')->name('job.spam');
