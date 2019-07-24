@@ -58,10 +58,10 @@ class User extends Authenticatable
     public function saveAJob($data)
     {
         $input = $data;
+
         if ($this->checkIsAFirstJob()) {
-            $this->notify(new ModeratorReview());
             $job = $this->jobs()->create($input);
-            return $this->notifyModerator($this, $job);
+            return $this->notifyModeratorAndUser($this, $job);
         }
         $input['approved'] = true;
         return $this->jobs()->create($input);
@@ -73,7 +73,7 @@ class User extends Authenticatable
      */
     protected function checkIsAFirstJob()
     {
-        if ($this->jobs()->count() == 0) {
+        if ($this->jobs()->count() == 0 || in_array(0, $this->jobs()->pluck('approved')->toArray())) {
             return true;
         }
 
@@ -85,8 +85,9 @@ class User extends Authenticatable
      * @param $user
      * @param $data
      */
-    protected function notifyModerator($user, $data)
+    protected function notifyModeratorAndUser($user, $data)
     {
         Notification::send(User::role('moderator')->get(), new FirstJobPost($user, $data));
+        $this->notify(new ModeratorReview());
     }
 }
