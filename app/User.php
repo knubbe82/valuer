@@ -2,10 +2,13 @@
 
 namespace App;
 
+use App\Notifications\FirstJobPost;
+use App\Notifications\ModeratorReview;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -54,6 +57,36 @@ class User extends Authenticatable
      */
     public function saveAJob($data)
     {
-        return $this->jobs()->create($data);
+        $input = $data;
+        if ($this->checkIsAFirstJob()) {
+            $this->notify(new ModeratorReview());
+            $job = $this->jobs()->create($input);
+            return $this->notifyModerator($this, $job);
+        }
+        $input['approved'] = true;
+        return $this->jobs()->create($input);
+    }
+
+    /**
+     * Check if this is a first job by user
+     * @return bool
+     */
+    protected function checkIsAFirstJob()
+    {
+        if ($this->jobs()->count() == 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Notify moderator about posting a first job
+     * @param $user
+     * @param $data
+     */
+    protected function notifyModerator($user, $data)
+    {
+        Notification::send(User::role('moderator')->get(), new FirstJobPost($user, $data));
     }
 }

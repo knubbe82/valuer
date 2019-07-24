@@ -19,6 +19,11 @@
                         </div>
                     @endif
 
+                    @foreach($jobs as $job)
+                        <p class="lead">{{ $job->title }}</p>
+                        <p>{{ $job->description }}</p>
+                        <hr>
+                    @endforeach
                 </div>
             </div>
         </div>

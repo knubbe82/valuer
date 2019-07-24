@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Job;
-use Illuminate\Http\Request;
+use App\Http\Requests\JobFormRequest;
 use Illuminate\Support\Facades\Redirect;
 
 class JobController extends Controller
 {
-    protected $job;
     /**
      * Create a new controller instance.
      *
@@ -16,7 +14,6 @@ class JobController extends Controller
      */
     public function __construct()
     {
-        $this->job = new Job();
         $this->middleware(['auth', 'role:hr']);
     }
 
@@ -30,10 +27,10 @@ class JobController extends Controller
     }
 
     /**
-     * @param Request $request
+     * @param JobFormRequest $request
      * @return Redirect
      */
-    public function postJob(Request $request)
+    public function postJob(JobFormRequest $request)
     {
         auth()->user()->saveAJob($request->all());
 

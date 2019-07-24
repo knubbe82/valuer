@@ -17,6 +17,7 @@ class CreateJobsTable extends Migration
             $table->bigIncrements('id');
             $table->string('title');
             $table->text('description');
+            $table->boolean('approved')->default(false);
             $table->unsignedBigInteger('user_id');
             $table->timestamps();
 

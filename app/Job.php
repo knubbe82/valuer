@@ -12,7 +12,7 @@ class Job extends Model
      *
      * @var array
      */
-    protected $fillable = ['title', 'description'];
+    protected $fillable = ['title', 'description', 'approved'];
 
     /**
      * @return BelongsTo
